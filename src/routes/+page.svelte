@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Chessground } from 'svelte-chessground';
+	import Chessboard from '$lib/components/Chessboard.svelte';
 </script>
 
-<Chessground />
+<Chessboard />
+
+<style lang="postcss">
+	:global(.cg-wrap) {
+		@apply !w-[80%];
+	}
+</style>
