@@ -2,8 +2,7 @@ name: Deploy to Github Pages
 
 env:
       name: production
-      url: ${{ steps.deployment.outputs.page_url }}
-
+      
 permissions:
       contents: write
       pages: write     
