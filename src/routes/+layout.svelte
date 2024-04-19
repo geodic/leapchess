@@ -1,6 +1,5 @@
 <script lang="ts">
-	import 'uno.css';
-	import '@unocss/reset/tailwind.css';
+	import '../app.pcss';
 </script>
 
 <slot></slot>
