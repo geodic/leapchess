@@ -1,16 +1,15 @@
 name: Deploy to Github Pages
-
-env:
-      name: production
-      
-permissions:
-      contents: write
-      pages: write     
-      id-token: write
-
 on: push
 jobs: 
   deploy:
+    permissions:
+      contents: write
+      pages: write     
+      id-token: write  
+
+    environment:
+      name: production
+
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout repo
