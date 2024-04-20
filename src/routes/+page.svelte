@@ -6,6 +6,6 @@
 
 <style lang="postcss">
 	:global(.cg-wrap) {
-		@apply !w-[80%];
+		@apply !w-[50vh];
 	}
 </style>
