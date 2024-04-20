@@ -2,6 +2,7 @@ import { Chessground } from 'svelte-chessground';
 import type { PieceSymbol, Color as ColorJS, Move as MoveJS } from 'chess.js';
 import { Chess, SQUARES } from 'chess.js';
 import type { Dests, Key, PiecesDiff, Role, Color as ColorCG } from 'chessground/types';
+import type { Config as ConfigCG } from 'chessground/config';
 
 type Concat<T extends string[]> = T extends [infer F extends string, ...infer R extends string[]]
 	? `${F}${Concat<R>}`
@@ -14,11 +15,17 @@ type BoardState =
 	| 'pendingIdeaMove'
 	| 'pendingPredictionMove';
 type Colors = 'white' | 'black';
-interface Move {
-	type: Colors;
-	move?: string;
-	idea?: string;
-	predictions: string[];
+type OptionalMoveJS = {
+	[Property in keyof MoveJS]?: MoveJS[Property];
+};
+interface Move extends OptionalMoveJS {
+	idea?: MoveJS;
+	predictions: MoveJS[];
+	children: History;
+}
+interface CompleteMove extends MoveJS {
+	idea?: MoveJS;
+	predictions: MoveJS[];
 	children: History;
 }
 interface PseudoMove {
@@ -41,6 +48,8 @@ interface FullConfig {
 	color: Colors | 'both';
 	predictivePlay: boolean;
 }
+
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 function convertTurn(turn: ColorCG): ColorJS;
 function convertTurn(turn: ColorJS): ColorCG;
@@ -101,27 +110,21 @@ export class Board {
 		let move = this.chess.move({ from: orig, to: dest, promotion });
 		this.update(move);
 	}
-	getCurrentMove(): Move {
+	getMove(): Move {
 		return this.currentLine.reduce((acc, id) => acc.children[id], this.history) as Move;
 	}
-	createNewMove(turn: Colors): Move {
+	getCompleteMove() {
+		return this.currentLine.reduce(
+			(acc, id) => ('san' in (acc.children[id] || {}) ? acc.children[id] : acc),
+			this.history
+		) as CompleteMove;
+	}
+	createNewMove(): Move {
 		const id = Date.now();
-		let currentMove = this.getCurrentMove();
-		currentMove.children[id] = { type: turn, predictions: [], children: [] };
+		let currentMove = this.getMove();
+		currentMove.children[id] = { predictions: [], children: [] };
 		this.currentLine.push(id);
 		return currentMove.children[id];
-	}
-	getFenFromMoves() {
-		let chess = new Chess();
-		console.log(this.history);
-		this.currentLine.reduce((acc, id) => {
-			console.log(acc.children[id].move);
-			if (acc.children[id].move) {
-				chess.move(acc.children[id].move || '');
-			}
-			return acc.children[id];
-		}, this.history);
-		return chess.fen();
 	}
 	resolveNextState(state: BoardState): BoardState {
 		let predictivePlay = this.config.predictivePlay;
@@ -141,39 +144,42 @@ export class Board {
 				return 'unknown';
 		}
 	}
-	update(move: MoveJS) {
-		let currentMove = this.getCurrentMove();
+	async update(move: MoveJS) {
+		let currentMove = this.getMove();
 		let turn = convertTurn(invertTurn(move.color));
 		let color = this.config.color;
 		let nextState = this.resolveNextState(this.state);
 		switch (this.stateProgression) {
 			case 'unknown pendingMove':
-				this.createNewMove(turn);
-				currentMove = this.getCurrentMove();
+				this.createNewMove();
+				currentMove = this.getMove();
 				console.log(this.history);
 				break;
 			default:
 		}
 		switch (this.state) {
 			case 'opponentMove':
-				this.createNewMove(turn);
-				currentMove = this.getCurrentMove();
-				currentMove.move = move.san;
+				this.createNewMove();
+				currentMove = this.getMove();
+				Object.assign(currentMove, move);
 				break;
 			case 'pendingMove':
-				currentMove.move = move.san;
+				Object.assign(currentMove, move);
 				break;
 			case 'pendingIdeaMove':
-				this.createNewMove(turn);
-				currentMove = this.getCurrentMove();
-				currentMove.idea = move.san;
-				let fen = this.getFenFromMoves();
+				this.createNewMove();
+				currentMove = this.getMove();
+				currentMove.idea = move;
+				await delay(700);
+				let completeMove = this.getCompleteMove();
+				let fen = completeMove.after;
 				this.chessground.set({ fen });
 				this.chess.load(fen);
+				this.chessground.set({ lastMove: [completeMove.from, completeMove.to] });
 				break;
 			case 'pendingPredictionMove':
-				currentMove.predictions.push(move.san);
-				this.createNewMove(turn);
+				currentMove.predictions.push(move);
+				this.createNewMove();
 				break;
 			default:
 				console.error('Invalid state: ' + this.state);
@@ -188,20 +194,22 @@ export class Board {
 				this.chess.load(splitFen.join(' '));
 				turn = invertTurn(turn);
 				color = turn;
-				console.log(turn);
 				break;
 			case 'pendingPredictionMove':
 				color = turn;
-				console.log(turn);
 			default:
 				break;
 		}
 		switch (this.stateProgression) {
 			case 'pendingPredictionMove opponentMove':
-				let fen = this.getFenFromMoves();
+				await delay(700);
+				let completeMove = this.getCompleteMove();
+				let fen = completeMove.after;
 				this.chessground.set({ fen });
 				this.chess.load(fen);
-				break;
+				if (currentMove.from && currentMove.to) {
+					this.chessground.set({ lastMove: [currentMove.from, currentMove.to] });
+				}
 			default:
 		}
 		this.chessground.set({
