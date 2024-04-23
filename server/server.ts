@@ -4,7 +4,7 @@ import { handler } from '../build/handler.js';
 import cors from './cors.js';
 
 const app = express();
-const port = 80;
+const port = 10000;
 
 app.use(cors);
 app.use(handler);
