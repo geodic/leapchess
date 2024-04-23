@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: leapchess
+    runtime: node
+    buildCommand: yarn install && yarn run build
+    startCommand: yarn serve
+    autoDeploy: false
