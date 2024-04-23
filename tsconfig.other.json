@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"outDir": "./build"
+	},
+	"include": ["./server/**/*"]
+}
