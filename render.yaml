@@ -5,3 +5,4 @@ services:
     buildCommand: corepack enable && yarn install && yarn run build
     startCommand: yarn serve
     autoDeploy: true
+    plan: free
