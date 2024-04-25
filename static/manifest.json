@@ -1,0 +1,12 @@
+{
+	"name": "Leapchess",
+	"start_url": "/",
+	"icons": [
+		{
+			"src": "logo_512.png",
+			"type": "image/png",
+			"sizes": "128x128"
+		}
+	],
+	"display": "fullscreen"
+}
