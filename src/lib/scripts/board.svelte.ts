@@ -184,7 +184,6 @@ export class Board {
 				currentMove.move = move;
 				break;
 			case 'pendingIdeaMove':
-				this.color = '#f0d9b5';
 				this.createNewMove();
 				currentMove = this.getMove();
 				currentMove.idea = move;
@@ -205,9 +204,13 @@ export class Board {
 		this.state = nextState;
 		switch (this.state) {
 			case 'opponentMove':
+				this.color = '#f0d9b5';
 				if (currentMove.move) {
 					this.callback(currentMove.move);
 				}
+				break;
+			case 'pendingMove':
+				this.color = '#f0d9b5';
 				break;
 			case 'pendingIdeaMove':
 				this.color = '#a3f79c';
@@ -219,6 +222,7 @@ export class Board {
 				color = turn;
 				break;
 			case 'pendingPredictionMove':
+				this.color = '#efb3b3';
 				color = turn;
 				break;
 			default:
