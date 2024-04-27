@@ -213,7 +213,7 @@ export class Board {
 				this.color = '#f0d9b5';
 				break;
 			case 'pendingIdeaMove':
-				this.color = '#a3f79c';
+				this.color = '#efb3b3';
 				let fen = this.chess.fen();
 				let splitFen = fen.split(' ');
 				splitFen[1] = invertTurn(splitFen[1] as ColorJS);
@@ -222,7 +222,7 @@ export class Board {
 				color = turn;
 				break;
 			case 'pendingPredictionMove':
-				this.color = '#efb3b3';
+				this.color = '#a3f79c';
 				color = turn;
 				break;
 			default:
